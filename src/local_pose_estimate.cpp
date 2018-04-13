@@ -27,6 +27,7 @@ class LocalAmclEstimate
         tf::TransformBroadcaster* tfb_;
         tf::TransformListener* listener_;
         tf::Transform tf_;
+        tf::Quaternion q_;
 
         laser_geometry::LaserProjection projector_;
 
@@ -44,9 +45,14 @@ LocalAmclEstimate::LocalAmclEstimate()
 : parent_frame_id_("amcl_pose"), child_frame_id_("base_link")
 {
     pose_sub_ = nh_.subscribe("/initialpose", 100, &LocalAmclEstimate::fake_movement, this);
-    laser_sub_ = nh_.subscribe("/scooter/top_front_lidar_filtered", 100, &LocalAmclEstimate::compress_laser_scan, this);
+    laser_sub_ = nh_.subscribe("/scooter/front_top_scan_filtered", 100, &LocalAmclEstimate::compress_laser_scan, this);
     nomotion_serv_ = nh_.serviceClient<std_srvs::Empty>("request_no_motion_update");
     laser_pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("/top_scan_topdown", 1);
+
+    listener_ = new tf::TransformListener;
+    tf_.setOrigin(tf::Vector3(0.0, 0.0, 1.89));
+    q_.setRPY(0.0, 0.262, 0.0);
+    tf_.setRotation(q_);
 }
 
 void LocalAmclEstimate::fake_movement(const geometry_msgs::PoseWithCovarianceStampedConstPtr &initial)
@@ -63,28 +69,32 @@ void LocalAmclEstimate::fake_movement(const geometry_msgs::PoseWithCovarianceSta
 void LocalAmclEstimate::compress_laser_scan(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
     if(!listener_->waitForTransform(
-            scan_in->header.frame_id,
-            "/base_link",
+            "/scooter/front_top_lidar",
+            "/scooter/base_link",
             scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment),
             ros::Duration(1.0))){
          return;
       }
 
     sensor_msgs::PointCloud2 laser_cloud, laser_cloud_2;
-    projector_.transformLaserScanToPointCloud("/base_link",*scan_in, laser_cloud, *listener_, 0.0, 1);
+    //projector_.transformLaserScanToPointCloud("/scooter/base_link",*scan_in, laser_cloud, *listener_, 0.0, 1);
+    projector_.projectLaser (*scan_in, laser_cloud);
 
 
     //projector_.projectLaser(*scan_in, laser_cloud);
     pcl::PointCloud<pcl::PointXYZ>::Ptr laser_pcl (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr laser_pcl_2 (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg (laser_cloud, *laser_pcl);
+    pcl_ros::transformPointCloud(*laser_pcl, *laser_pcl_2, tf_);
 
-
-    for (int i=0; i<laser_pcl->size(); i++)
+    for (int i=0; i<laser_pcl_2->size(); i++)
     {
-        laser_pcl->points[i].z = 0.0;
+        laser_pcl_2->points[i].z = 0.0;
     }
-    pcl::toROSMsg(*laser_pcl, laser_cloud_2);
+    std::cout<<"laser size: "<<scan_in->ranges.size()<<" point cloud size: "<<laser_pcl_2->size()<<std::endl;
+    pcl::toROSMsg(*laser_pcl_2, laser_cloud_2);
     laser_cloud_2.header = scan_in->header;
+    laser_cloud_2.header.frame_id = "top_down_laser";
     laser_pcl_pub_.publish(laser_cloud_2);
 
 }
