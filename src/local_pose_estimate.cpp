@@ -59,7 +59,7 @@ void LocalAmclEstimate::fake_movement(const geometry_msgs::PoseWithCovarianceSta
 {
     std_srvs::Empty nothing_one, nothing_two;
     nomotion_serv_.call(nothing_one);
-    tf_.setOrigin(tf::Vector3(initial->pose.pose.position.x, initial->pose.pose.position.y, initial->pose.pose.position.z));
+    //tf_.setOrigin(tf::Vector3(initial->pose.pose.position.x, initial->pose.pose.position.y, initial->pose.pose.position.z));
     //tf::quaternionMsgToTF(initial->pose.pose.orientation, tf_.setRotation());
     //tf_.setRotation(tf::Quaternion(initial->pose.pose.orientation.x, initial->pose.pose.orientation.y, initial->pose.pose.orientation.z, initial->pose.pose.orientation.w));
     //tf::StampedTransform odom_transform_stamped(tf_, initial->header.stamp, "/scooter/odom", "/scooter/map");
@@ -68,13 +68,13 @@ void LocalAmclEstimate::fake_movement(const geometry_msgs::PoseWithCovarianceSta
 
 void LocalAmclEstimate::compress_laser_scan(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
-    if(!listener_->waitForTransform(
+    /*if(!listener_->waitForTransform(
             "/scooter/front_top_lidar",
             "/scooter/base_link",
             scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment),
             ros::Duration(1.0))){
          return;
-      }
+      }*/
 
     sensor_msgs::PointCloud2 laser_cloud, laser_cloud_2;
     //projector_.transformLaserScanToPointCloud("/scooter/base_link",*scan_in, laser_cloud, *listener_, 0.0, 1);
