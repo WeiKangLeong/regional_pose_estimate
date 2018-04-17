@@ -93,7 +93,7 @@ void LocalAmclEstimate::compress_laser_scan(const sensor_msgs::LaserScan::ConstP
     }
     std::cout<<"laser size: "<<scan_in->ranges.size()<<" point cloud size: "<<laser_pcl_2->size()<<std::endl;
     pcl::toROSMsg(*laser_pcl_2, laser_cloud_2);
-    laser_cloud_2.header = scan_in->header;
+    laser_cloud_2.header.stamp = ros::Time::now();
     laser_cloud_2.header.frame_id = "top_down_laser";
     laser_pcl_pub_.publish(laser_cloud_2);
 

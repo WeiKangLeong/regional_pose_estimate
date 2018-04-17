@@ -28,7 +28,7 @@
 
 <!-- <node pkg="map_server" type="map_server" name="map_server" args="$(find launch_files)/maps/map.yaml"> -->
  <node pkg="map_server" type="map_server" name="map_server" args="$(find utown_plaza)/all_utown.yaml">
-  <param name="frame_id" value="map"/>
+  <param name="frame_id" value="/scooter/map"/>
 </node>
 <node pkg="amcl_test" type="amcl_test" name="amcl_test" output="screen">
 
