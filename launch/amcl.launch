@@ -1,6 +1,6 @@
 <launch>
 
-<node pkg = "regional_pose_estimate" type= "local_pose_estimate" name="pose_estimate"/>
+<!--<node pkg = "regional_pose_estimate" type= "local_pose_estimate" name="pose_estimate"/>
 
 <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
 <remap from="cloud_in" to="/top_scan_topdown"/>
@@ -24,16 +24,21 @@
             # 1 : Single threaded
             # 2->inf : Parallelism level
             concurrency_level: 1
-        </rosparam></node>
+        </rosparam></node>-->
 
 <!-- <node pkg="map_server" type="map_server" name="map_server" args="$(find launch_files)/maps/map.yaml"> -->
- <node pkg="map_server" type="map_server" name="map_server" args="$(find utown_plaza)/all_utown.yaml">
-  <param name="frame_id" value="map"/>
+ <node pkg="map_server" type="map_server" name="map_server" args="/home/weikang/rosbag/cleantech/cleantechnew.yaml">
+  <param name="frame_id" value="iMiev/map"/>
 </node>
-<node pkg="amcl_test" type="amcl_test" name="amcl_test" output="screen">
+<node pkg="amcl_pc" type="amcl" name="amcl_test" output="screen">
 
-<remap from ="scan" to ="/topdown_scan" />
-<remap from ="/amcl_pose" to ="/assume_pose" />
+<remap from ="scan" to ="/iMiev/front_bottom_scan_filtered" />
+<!--<remap from ="map" to ="/iMiev/map" />
+<remap from ="/amcl_pose" to ="/assume_pose" />-->
+
+  <param name="odom_frame_id" value="iMiev/odom"/>
+  <param name="global_frame_id" value="iMiev/map"/>
+  <param name="base_frame_id" value="iMiev/baselink"/>
   
 <!-- Publish scans from best pose at a max of 10 Hz -->
   <param name="odom_model_type" value="diff"/>

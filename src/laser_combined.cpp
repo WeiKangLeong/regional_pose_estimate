@@ -158,11 +158,11 @@ main (int argc, char** argv)
 
     // Create a ROS subscriber for the input point cloud
     //ros::Subscriber sub = nh.subscribe ("input", 1, cloud_cb);
-    ros::Subscriber sub_laser_one = nh.subscribe<sensor_msgs::LaserScan> ("/front_bottom_lidar", 1, sidekick1_cb);
+    ros::Subscriber sub_laser_one = nh.subscribe<sensor_msgs::LaserScan> ("/iMiev/front_bottom_scan_filtered", 1, sidekick1_cb);
     ros::Subscriber sub_laser_two = nh.subscribe<sensor_msgs::LaserScan> ("/top_scan", 1, sidekick2_cb);
-    ros::Subscriber sub_laser_three = nh.subscribe<sensor_msgs::LaserScan> ("/tim_sidekick3", 1, sidekick3_cb);
+    ros::Subscriber sub_laser_three = nh.subscribe<sensor_msgs::LaserScan> ("/iMiev/rear_scan", 1, sidekick3_cb);
 
-    pub = nh.advertise<sensor_msgs::PointCloud2> ("laser_combined", 1);
+    pub = nh.advertise<sensor_msgs::PointCloud2> ("/iMiev/laser_combined", 1);
 
     sensor_msgs::PointCloud2 laser_cloud;
     sensor_msgs::PointCloud2 output2;
@@ -202,13 +202,13 @@ main (int argc, char** argv)
 	tf::Transform side_one, side_two, side_three;
         tf::Quaternion quaternion_one, quaternion_two, quaternion_three;
         quaternion_one.setRPY(0.0,0.0,0.0);
-        side_one.setOrigin(tf::Vector3(1.03, 0.0, 0.0));
+        side_one.setOrigin(tf::Vector3(3.17, 0.0, 0.76));
 	side_one.setRotation(quaternion_one);
-        quaternion_two.setRPY(PI, 0.0, 1.5158);
+        quaternion_two.setRPY(0.0, 0.0, 0.0);
 	side_two.setOrigin(tf::Vector3(-1.0, 0.77, 0.76));
 	side_two.setRotation(quaternion_two);
-        quaternion_three.setRPY(PI, 0.0, -1.5968);
-	side_three.setOrigin(tf::Vector3(-1.05, -0.72, 0.76));
+        quaternion_three.setRPY(0.0, 0.0, PI);
+        side_three.setOrigin(tf::Vector3(-0.47, 0.0, 0.68));
         side_three.setRotation(quaternion_three);
         //tf::Quaternion quaternion_one(0.0,0.0,0.0);
         //side_one.setOrigin(tf::Vector3(0.0,0.0,0.0));
@@ -237,8 +237,8 @@ main (int argc, char** argv)
           pcl_ros::transformPointCloud (*cloud_one, *cloud_one_tf, side_one);
           *laser_assembly+=*cloud_one_tf;
 
-          *laser_assembly+=*laser_pcl_3;
-          laser_pcl_3->clear();
+//          *laser_assembly+=*laser_pcl_3;
+//          laser_pcl_3->clear();
 
           //laser_input->clear();
 //          projector_.projectLaser(laser_two, laser_cloud);
@@ -246,16 +246,16 @@ main (int argc, char** argv)
 //          pcl_ros::transformPointCloud (*cloud_two, *cloud_two_tf, side_two);
 //          *laser_assembly+=*cloud_two_tf;
 //          //laser_input->clear();
-//          projector_.projectLaser(laser_three, laser_cloud);
-//          pcl::fromROSMsg(laser_cloud, *cloud_three);
-//          pcl_ros::transformPointCloud (*cloud_three, *cloud_three_tf, side_three);
-//          *laser_assembly+=*cloud_three_tf;
+          projector_.projectLaser(laser_three, laser_cloud);
+          pcl::fromROSMsg(laser_cloud, *cloud_three);
+          pcl_ros::transformPointCloud (*cloud_three, *cloud_three_tf, side_three);
+          *laser_assembly+=*cloud_three_tf;
 //          //laser_input->clear();
           pcl::toROSMsg(*laser_assembly, output2);
 //          sensor_msgs::PointCloud2ConstPtr output3 = *output2;
 //          scan_combined = pointcloud_to_laser(output2);
           output2.header.stamp = laser_one.header.stamp;
-          output2.header.frame_id = "base_link";
+          output2.header.frame_id = "/iMiev/base_link";
           pub.publish(output2);
         //std::cout<<"cloud 1: "<<cloud_one->size()<<" cloud 2: "<<cloud_two->size()<<" cloud 3: "<<cloud_three->size()<<" and total: "<<laser_assembly->size()<<std::endl;
         //std::cout<<time_one<<" "<<time_two<<" "<<time_three<<std::endl;
